@@ -1,0 +1,56 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model tbUser {
+  id Int @id @default(autoincrement())
+  appID String @unique
+  username String @unique
+  email String @unique
+  password String
+  wallets tbWallet[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model tbWallet {
+  id          Int  @id @default(autoincrement())
+  walletID String @unique
+  userId      String  @map("user_id")
+  user        tbUser    @relation(fields: [userId], references: [appID], onDelete: Cascade)
+  balance     Float   @default(0.0)
+  transactions tbTransaction[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model tbTransaction {
+  id          Int  @id @default(autoincrement())
+  transactionID String @unique
+  walletId   String  @map("wallet_id")
+  wallet     tbWallet  @relation(fields: [walletId], references: [walletID], onDelete: Cascade)
+  type       String  // "deposit" or "withdrawal"
+  amount     Float
+  currency   String
+  createdAt  DateTime @default(now())
+}
+
+model tbCryptocurrency {
+  id          Int  @id @default(autoincrement())
+  name     String  @unique
+  symbol   String  @unique
+  priceUSD Float
+  createdAt DateTime @default(now())
+}
