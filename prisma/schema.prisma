@@ -27,9 +27,10 @@ model tbUser {
 
 model tbWallet {
   id          Int  @id @default(autoincrement())
+  walletName       String @unique
   walletID String @unique
-  userId      String  @map("user_id")
-  user        tbUser    @relation(fields: [userId], references: [appID], onDelete: Cascade)
+  userAppID      String  @map("user_app_id")
+  user        tbUser    @relation(fields: [userAppID], references: [appID], onDelete: Cascade)
   balance     Float   @default(0.0)
   transactions tbTransaction[]
   createdAt   DateTime @default(now())
@@ -44,6 +45,7 @@ model tbTransaction {
   type       String  // "deposit" or "withdrawal"
   amount     Float
   currency   String
+  description String
   createdAt  DateTime @default(now())
 }
 

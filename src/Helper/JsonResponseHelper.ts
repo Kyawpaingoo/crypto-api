@@ -19,4 +19,10 @@ const createSuccessResponse = <T>(res: any, data: T, message: string = "Operatio
 const createFailureResponse = <T = never>(res: any,message: string = "Operation failed", validationErrors: ValidationError[] = [], statusCode: number = 400): JsonResponse<T> =>
     res.status(statusCode).json(createResponse<T>(false, undefined, validationErrors, message));
 
-export { createResponse, createSuccessResponse, createFailureResponse };
+const createJsonRespone = <T>(res: any, data: T, message: string = "Operation succeeded") =>        
+    res.status(200).json({
+    data,
+    message
+});
+
+export { createResponse, createSuccessResponse, createFailureResponse, createJsonRespone };

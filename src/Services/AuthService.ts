@@ -8,12 +8,15 @@ import prisma from '../prisma';
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import { userPayload } from 'src/Dtos/AuthDto';
+import { UserProfileDto } from 'src/Dtos/UserDto';
 
 const jwtSecret: string = process.env.JWT_SECRET as string;
 
 export const registerService = async (req: Request, res: Request) : Promise<void> => {
+    const { email, password, username } = req.body;
+
     try {
-        const { email, password, username } = req.body;
+        
 
         if(!email || !password) {
             throw new Error("Email and password are required");
@@ -53,7 +56,13 @@ export const registerService = async (req: Request, res: Request) : Promise<void
         
         await SendEmail(emailDto);
 
-        createSuccessResponse(res, user, "User registration successful");
+        const result: UserProfileDto = {
+            appID: user.appID,
+            username: user.username,
+            email: user.email
+        }
+
+        createSuccessResponse(res, result, "User registration successful");
     }
     catch (error) {
         if(error instanceof Error) {
@@ -75,33 +84,40 @@ export const registerService = async (req: Request, res: Request) : Promise<void
 export const checkUsernameService  = async (req: Request, res: Response) : Promise<void> => {
 
     const { username } = req.body;
-
-    console.log(username);
-
-    if (!username) {
-        createFailureResponse(res, "Username is required", [], 400);
-        return;
-    }
-
-    
-
-    const existingUsername = await prisma.tbUser.findUnique({
-        where: {
-            username: username
+    try {
+        if (!username) {
+            throw new Error( "Username is required");
         }
-    });
+    
+        const existingUsername = await prisma.tbUser.findUnique({
+            where: {
+                username: username
+            }
+        });
+    
+        if(existingUsername) {
+            createFailureResponse(res, "Username already exists", [], 400);
+            return;
+        }
 
-    if(existingUsername) {
-        createFailureResponse(res, "Username already exists", [], 400);
-    }
-    else {
         createSuccessResponse(res, null, "Username available");
     }
+    catch (error)
+    {
+        if(error instanceof Error) {
+            const statusCode = 
+                error.message === "Username is required" 
+                    ? 400 : 500;
+            createFailureResponse(res, error.message, [], 400);
+        }
+    }
+    
 }
 
 export const loginService = async (req: Request, res: Response) : Promise<void> => {
+    const {email, password} = req.body;
+
     try{
-        const {email, password} = req.body;
         if(!email || !password) 
         {
             throw new Error("Email and password are required");
@@ -134,7 +150,13 @@ export const loginService = async (req: Request, res: Response) : Promise<void> 
         res.cookie("token", token, {httpOnly: true});
         res.cookie("refreshToken", refreshToken, {httpOnly: true});
 
-        createSuccessResponse(res, user, "User logged in successfully");
+        const result: UserProfileDto = {
+            appID: user.appID,
+            username: user.username,
+            email: user.email
+        }
+
+        createSuccessResponse(res, result, "User logged in successfully");
     }
     catch(error)
     {

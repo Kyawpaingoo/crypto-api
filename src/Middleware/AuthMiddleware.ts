@@ -1,28 +1,28 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
+import { createFailureResponse } from '../Helper/JsonResponseHelper';
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
     const token = req.cookies.token;
-    try{
+    try {
         if (!token) {
             throw new Error("Unauthorized");
         }
-        
+
         const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
 
-        if(!decoded) {
+        if (!decoded) {
             throw new Error("Unauthorized");
         }
         next();
-    }
-    catch(error)
-    {
-        if(error instanceof Error) {
-            const statusCode = 
-                error.message === "Unauthorized" 
+    } catch (error) {
+        if (error instanceof Error) {
+            const statusCode =
+                error.message === "Unauthorized"
                     ? 401 : 500;
-            res.status(statusCode).json({message: error.message});
+            createFailureResponse(res, error.message, [], statusCode);
         }
     }
 }
+

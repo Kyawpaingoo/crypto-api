@@ -1,14 +1,10 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import bcrypt from 'bcrypt';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import fileUpload from 'express-fileupload';
-import jwt from 'jsonwebtoken';
-import axios from 'axios';
-import nodemailer from 'nodemailer';
-import {v4 as uuidv4} from 'uuid';
 import AuthController from './Controllers/AuthController';
+import UserController from './Controllers/UserController';
 
 dotenv.config();
 const app = express();
@@ -24,6 +20,7 @@ app.get('/', (req, res) => {
 
 
 app.use('/api/auth', AuthController);
+app.use('/api/user', UserController);
 
 app.listen(3000, () => {
   console.log('Server is running on http://localhost:3000');
