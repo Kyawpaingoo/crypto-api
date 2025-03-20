@@ -54,7 +54,7 @@ export const registerService = async (req: Request, res: Request) : Promise<void
             text: "Welcome to our platform"
         }
         
-        await SendEmail(emailDto);
+        //await SendEmail(emailDto);
 
         const result: UserProfileDto = {
             appID: user.appID,
@@ -169,6 +169,11 @@ export const loginService = async (req: Request, res: Response) : Promise<void> 
             createFailureResponse(res, error.message, [], 400);
         }
     }
+}
+
+export const logoutService = async (req: Request, res: Response) : Promise<void> => 
+{
+    
 }
 
 export const refreshTokenService = async (req: Request, res: Response) : Promise<void> => {

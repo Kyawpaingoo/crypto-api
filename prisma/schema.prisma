@@ -19,6 +19,7 @@ model tbUser {
   appID String @unique
   username String @unique
   email String @unique
+  photo String @default("https://res.cloudinary.com/dkzjg7z5e/image/upload/v1633660004/avatars/default-avatar.png")
   password String
   wallets tbWallet[]
   createdAt DateTime @default(now())
@@ -26,27 +27,70 @@ model tbUser {
 }
 
 model tbWallet {
-  id          Int  @id @default(autoincrement())
-  walletName       String @unique
-  walletID String @unique
-  userAppID      String  @map("user_app_id")
-  user        tbUser    @relation(fields: [userAppID], references: [appID], onDelete: Cascade)
-  balance     Float   @default(0.0)
-  transactions tbTransaction[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              Int             @id @default(autoincrement())
+  walletName      String          
+  walletID        String          @unique
+  walletType      String
+  userAppID       String          @map("user_app_id")
+  user            tbUser          @relation(fields: [userAppID], references: [appID], onDelete: Cascade)
+  balance         Float           @default(0.0)
+  
+  // Transactions associated with this wallet
+  transactions    tbTransaction[] @relation("WalletTransactions")
+  
+  // Transfer relations
+  sentTransfers     tbTransfer[]    @relation("SenderTransfers")
+  receivedTransfers tbTransfer[]    @relation("ReceiverTransfers")
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 }
 
 model tbTransaction {
-  id          Int  @id @default(autoincrement())
-  transactionID String @unique
-  walletId   String  @map("wallet_id")
-  wallet     tbWallet  @relation(fields: [walletId], references: [walletID], onDelete: Cascade)
-  type       String  // "deposit" or "withdrawal"
-  amount     Float
-  currency   String
-  description String
-  createdAt  DateTime @default(now())
+  id            Int      @id @default(autoincrement())
+  transactionID String   @unique
+  Title   String
+  
+  // Wallet this transaction belongs to
+  walletID      String   @map("wallet_id")
+  wallet        tbWallet @relation("WalletTransactions", fields: [walletID], references: [walletID], onDelete: Cascade)
+  
+  // App ID associated with this transaction
+  appID         String   @map("app_id")
+  
+  // Optional transfer reference - null if system reward
+  transferID    Int?     @map("transfer_id")
+  transfer      tbTransfer? @relation(fields: [transferID], references: [id], onDelete: SetNull)
+  
+  nature        String   // "positive" (money in) or "negative" (money out)
+  type          String   // "deposit", "withdrawal", "transfer", "reward", etc.
+  amount        Float
+  currency      String
+  createdAt     DateTime @default(now())
+}
+
+model tbTransfer {
+  id               Int      @id @default(autoincrement())
+  transferID       String   @unique @default(uuid())
+  
+  // Sender information
+  senderWalletId   String   @map("sender_wallet_id")
+  senderWallet     tbWallet @relation("SenderTransfers", fields: [senderWalletId], references: [walletID], onDelete: Cascade)
+  senderAppId      String   @map("sender_app_id")
+  
+  // Receiver information
+  receiverWalletId String   @map("receiver_wallet_id")
+  receiverWallet   tbWallet @relation("ReceiverTransfers", fields: [receiverWalletId], references: [walletID], onDelete: Cascade)
+  receiverAppId    String   @map("receiver_app_id")
+  
+  // Associated transactions (sender and receiver)
+  transactions     tbTransaction[]
+  
+  amount           Float
+  currency         String
+  description      String
+  status           String   @default("completed") // "pending", "completed", "failed", etc.
+  createdAt        DateTime @default(now())
 }
 
 model tbCryptocurrency {
