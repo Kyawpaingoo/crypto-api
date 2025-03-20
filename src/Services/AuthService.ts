@@ -173,7 +173,9 @@ export const loginService = async (req: Request, res: Response) : Promise<void> 
 
 export const logoutService = async (req: Request, res: Response) : Promise<void> => 
 {
-    
+    res.clearCookie("token");
+    res.clearCookie("refreshToken");
+    createSuccessResponse(res, null, "User logged out successfully");
 }
 
 export const refreshTokenService = async (req: Request, res: Response) : Promise<void> => {

@@ -11,7 +11,7 @@ export const CreateWalletService = async (req: Request, res: Response) : Promise
     try {
         const walletID = uuidv4();
 
-        const checkWalletName = await prisma.tbWallet.findUnique({
+        const checkWalletName = await prisma.tbWallet.findFirst({
             where: {
                 walletName: walletName,
                 userAppID: appID
